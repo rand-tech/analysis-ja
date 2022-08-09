@@ -34,30 +34,33 @@ func run(args []string) error {
 			continue
 		}
 
-		ast.Inspect(decl.Body, func(n ast.Node) bool {
-			call, _ := n.(*ast.CallExpr)
+		for _, stmt := range decl.Body.List {
+
+			assign, _ := stmt.(*ast.AssignStmt)
+			if assign == nil || len(assign.Rhs) != 1 {
+				continue
+			}
+
+			call, _ := assign.Rhs[0].(*ast.CallExpr)
 			if call == nil {
-				return true
+				continue
 			}
 
 			sel, _ := call.Fun.(*ast.SelectorExpr)
 			if sel == nil {
-				return false
+				continue
 			}
 
 			pkgname, _ := sel.X.(*ast.Ident)
 			if pkgname == nil {
-				return false
+				continue
 			}
 
 			if pkgname.Name == "exec" && sel.Sel.Name == "Command" {
-				pos := fset.Position(n.Pos())
+				pos := fset.Position(assign.Rhs[0].Pos())
 				fmt.Fprintf(os.Stdout, "%s: find exec.Command in init\n", pos)
-				return false
 			}
-
-			return true
-		})
+		}
 	}
 
 	return nil
