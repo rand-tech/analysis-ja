@@ -23,22 +23,21 @@ func run(args []string) error {
 
 	fname := args[0]
 	fset := token.NewFileSet()
-	// TODO: fnameのファイルをパースする
-
+	f, err := parser.ParseFile(fset, fname, nil, 0)
 	if err != nil {
 		return err
 	}
 
-	for _, spec := range /* TODO: *ast.ImportSpecのスライスを取得する */ {
-		// TODO: パスの文字列リテラルから文字列を取得
-
+	// slide 59
+	for _, spec := range f.Imports {
+		// パスの文字列リテラルから文字列を取得
+		path, err := strconv.Unquote(spec.Path.Value)
 		if err != nil {
 			return err
 		}
-
 		if path == "unsafe" {
-			// TODO: token.Pos型からtoken.Position型の値を取得
-
+			// token.Pos型からtoken.Position型の値を取得 (slide 64)
+			pos := fset.Position(spec.Pos())
 			fmt.Fprintf(os.Stderr, "%s: import unsafe\n", pos)
 		}
 	}
